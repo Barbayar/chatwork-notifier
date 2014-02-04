@@ -1,0 +1,7 @@
+<?php
+class ChatWorkConfig
+{
+    const COMPANY_ID = 'blah-blah';
+    const EMAIL = 'blah-blah';
+    const PASSWORD = 'blah-blah';
+}
