@@ -4,6 +4,7 @@ require_once('ChatWork.php');
 ini_set('error_log', '../data/error.log');
 
 define('OK', 200);
+define('BAD_REQUEST', 400);
 define('UNAUTHORIZED', 401);
 define('NOT_FOUND', 404);
 define('INTERNAL_SERVER_ERROR', 500);
@@ -41,6 +42,10 @@ function sendByUserId($user_id, $message)
 
 function sendByRoomId($room_id, $message)
 {
+    if (!ChatWork::isRoomIdInContacts($room_id)) {
+        throw new Exception("$room_id is not in contacts", NOT_FOUND);
+    }
+
     ChatWork::send($room_id, $message);
 }
 
@@ -65,11 +70,26 @@ try {
     $message = "[info][title]Notification from ${service_name}[/title]${_GET['message']}[/info]";
 
     if (isset($_GET['room_id'])) {
-        sendByRoomId($_GET['room_id'], $message);
+        $room_id = $_GET['room_id'];
+        if (preg_match('/^\d{1,20}$/', $room_id) !== 1) {
+            response(BAD_REQUEST, "$room_id is not a room id");
+        }
+
+        sendByRoomId($room_id, $message);
     } elseif (isset($_GET['user_id'])) {
-        sendByUserId($_GET['user_id'], $message);
+        $user_id = $_GET['user_id'];
+        if (preg_match('/^\d{1,20}$/', $user_id) !== 1) {
+            response(BAD_REQUEST, "$user_id is not an user id");
+        }
+
+        sendByUserId($user_id, $message);
     } elseif (isset($_GET['email'])) {
-        sendByEmail($_GET['email'], $message);
+        $email = $_GET['email'];
+        if (preg_match('/^.+@.+\..+$/', $email) !== 1) {
+            response(BAD_REQUEST, "$email is not an email address");
+        }
+
+        sendByEmail($email, $message);
     } else {
         throw new Exception('user id, room id and email is missing', NOT_FOUND);
     }

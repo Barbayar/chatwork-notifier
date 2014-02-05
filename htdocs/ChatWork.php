@@ -8,8 +8,11 @@ class ChatWork
     const CONTACTS_PATH = '../data/chatwork.contacts';
     const EMAILS_PATH = '../data/chatwork.emails';
     const ROOT_URL = 'https://kcw.kddi.ne.jp/';
-    const CONTACTS_CACHE_TIME = 86400;
-    const TOKEN_CACHE_TIME = 86400;
+    const CONTACTS_CACHE_TIME = 86400;      // 1 day
+    const TOKEN_CACHE_TIME = 2592000;       // 30 days
+
+    private static $_emails = null;
+    private static $_contacts = null;
 
     private static function _sendHTTPRequest($url, $data)
     {
@@ -121,10 +124,12 @@ class ChatWork
     private static function _loadContacts()
     {
         if (file_exists(self::CONTACTS_PATH) && time() - filectime(self::CONTACTS_PATH) < self::CONTACTS_CACHE_TIME) {
-            // no need to load
-            $contacts = unserialize(file_get_contents(self::CONTACTS_PATH));
+            // no need to download
+            if (is_null(self::$_contacts)) {
+                self::$_contacts = unserialize(file_get_contents(self::CONTACTS_PATH));
+            }
 
-            return $contacts;
+            return self::$_contacts;
         }
 
         $token = self::_authenticate();
@@ -137,26 +142,29 @@ class ChatWork
         $result = self::_getAPIResultFromHTTPResult($http_result);
         $contacts_data = $result['contact_dat'];
 
-        $contacts = array();
+        self::$_contacts = array();
         foreach ($contacts_data as $user_id => $user_info) {
-            $contacts[$user_id] = $user_info['rid'];
+            self::$_contacts[$user_id] = $user_info['rid'];
         }
 
         @unlink(self::CONTACTS_PATH);
-        file_put_contents(self::CONTACTS_PATH, serialize($contacts));
+        file_put_contents(self::CONTACTS_PATH, serialize(self::$_contacts));
 
-        return $contacts;
+        return self::$_contacts;
     }
 
     public static function email2userId($email)
     {
-        $emails = array();
-        if (file_exists(self::EMAILS_PATH)) {
-            $emails = unserialize(file_get_contents(self::EMAILS_PATH));
+        if (is_null(self::$_emails)) {
+            $_emails = array();
+
+            if (file_exists(self::EMAILS_PATH)) {
+                self::$_emails = unserialize(file_get_contents(self::EMAILS_PATH));
+            }
         }
 
-        if (isset($emails[$email])) {
-            return $emails[$email];
+        if (isset(self::$_emails[$email])) {
+            return self::$_emails[$email];
         }
 
         $token = self::_authenticate();
@@ -183,8 +191,8 @@ class ChatWork
         $account_data = reset($account_data);
         $user_id = $account_data['aid'];
 
-        $emails[$email] = $user_id;
-        file_put_contents(self::EMAILS_PATH, serialize($emails));
+        self::$_emails[$email] = $user_id;
+        file_put_contents(self::EMAILS_PATH, serialize(self::$_emails));
 
         return $user_id;
     }
@@ -198,6 +206,17 @@ class ChatWork
         }
 
         return $contacts[$user_id];
+    }
+
+    public static function isRoomIdInContacts($room_id)
+    {
+        $contacts = self::_loadContacts();
+
+        if (!in_array($room_id, $contacts)) {
+            return false;
+        }
+
+        return true;
     }
 
     public static function send($room_id, $message)
