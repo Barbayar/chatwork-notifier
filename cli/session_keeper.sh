@@ -8,6 +8,6 @@ URL="https://kcw.kddi.ne.jp/gateway.php?cmd=get_update&_t=$TOKEN&last_id=${FUTUR
 # sends a request every 30 minutes
 while true
 do
-    curl $URL --cookie ../data/chatwork.cookie
+    curl $URL --cookie ../data/chatwork.cookie 2>/dev/null
     sleep 1800
 done
