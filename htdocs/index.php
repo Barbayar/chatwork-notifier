@@ -3,14 +3,14 @@
 require_once('ChatWork.php');
 ini_set('error_log', '../data/error.log');
 
-const OK = 200;
-const UNAUTHORIZED = 401;
-const NOT_FOUND = 404;
-const INTERNAL_SERVER_ERROR = 500;
+define('OK', 200);
+define('UNAUTHORIZED', 401);
+define('NOT_FOUND', 404);
+define('INTERNAL_SERVER_ERROR', 500);
 
 function response($http_response_code, $result)
 {
-    http_response_code($http_response_code);
+    header(':', true, $http_response_code);
     header('Content-Type: application/json; charset=utf-8');
     die(json_encode(array(
         'result' => $result,

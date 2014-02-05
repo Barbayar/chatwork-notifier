@@ -171,8 +171,11 @@ class ChatWork
         );
 
         $result = self::_getAPIResultFromHTTPResult($http_result);
-        $account_data = $result['account_dat'];
+        if (!isset($result['account_dat'])) {
+            return null;
+        }
 
+        $account_data = $result['account_dat'];
         if (count($account_data) < 1) {
             return null;
         }
