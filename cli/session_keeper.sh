@@ -9,5 +9,6 @@ URL="https://kcw.kddi.ne.jp/gateway.php?cmd=get_update&_t=$TOKEN&last_id=${FUTUR
 while true
 do
     curl $URL --cookie ../data/chatwork.cookie 2>/dev/null
+    printf "\n"
     sleep 1800
 done
