@@ -42,9 +42,11 @@ function sendByUserId($user_id, $message)
 
 function sendByRoomId($room_id, $message)
 {
+    /* group room ids are not in chatwork.contacts, so we shouldn't check
     if (!ChatWork::isRoomIdInContacts($room_id)) {
         throw new Exception("$room_id is not in contacts", NOT_FOUND);
     }
+    */
 
     ChatWork::send($room_id, $message);
 }
